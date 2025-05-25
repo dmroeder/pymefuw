@@ -1,3 +1,5 @@
+import time
+
 from pymeu import comms
 from pymeu import types
 from pymeu.terminal import files
@@ -10,6 +12,8 @@ class MEFUW(object):
 
     def upgrade(self, fuw_helper_path: str, fuw_image_path: str):
         with comms.Driver(self.comms_path, self.driver) as cip:
+            cip.timeout = 240
+
             # Phase 1 - Send firmware upgrade wizard helper
             get_unk1 = files.is_get_unk_valid(cip)
             fuw_helper_file = types.MEFile('FUWhelper.dll',
@@ -24,6 +28,7 @@ class MEFUW(object):
                 files.download(cip, transfer_instance, bytearray(source_file.read()))
             
             files.delete_transfer_instance(cip, transfer_instance)
+            time.sleep(15)
 
             # Phase 2 - Send firmware upgrade image
             fuw_helper = '\\Storage Card\\FUWhelper.dll'
@@ -47,7 +52,6 @@ class MEFUW(object):
             
             transfer_instance = files.create_transfer_instance_download(cip, fuw_image_file, '\\vfs\\platform firmware')
             set_unk1 = files.is_set_unk_valid(cip)
-            cip.timeout = 120
             with open(fuw_image_path, 'rb') as source_file:
                 files.download(cip, transfer_instance, bytearray(source_file.read()))
                 
