@@ -1,0 +1,16 @@
+[project]
+name = "pymefuw"
+description = "Python ME Firmware Upgrade Wizard"
+version = "0.0.1"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    { name = "aawilliams85", email = "adair.williams85@gmail.com" }
+]
+dependencies = [
+    "pylogix",
+    "pymeu"
+]
+
+[project.urls]
+Repository = "https://github.com/aawilliams85/pymefuw"
