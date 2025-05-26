@@ -52,7 +52,7 @@ docs/_build/
 # Uploads from tests
 /tests/upload/*
 
-/tests/fuw/*
+/tests/firmware/*
 
 # pypi config
 *.pypirc
