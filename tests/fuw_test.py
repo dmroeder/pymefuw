@@ -11,7 +11,6 @@ unittest.TestLoader.sortTestMethodsUsing = None
 # <Project Path>\tests\firmware\FUC\PVP6\<Version>\upgrade\SC.IMG
 
 BASE_PATH = os.path.abspath(os.path.dirname(__file__))
-FUW_FOLDER_PATH = os.path.join(BASE_PATH, 'fuw')
 FIRMWARE_FOLDER_PATH = os.path.join(BASE_PATH, 'firmware')
 
 class fuw_tests(unittest.TestCase):
