@@ -3,6 +3,6 @@
 #
 # This example is specifically for a PanelView Plus 6 1500.
 #
-from pymefuw import MEFUW
-fuw = MEFUW('YourPanelViewIpAddress')
+from pymefuw import MEFirmware
+fuw = MEFirmware('YourPanelViewIpAddress')
 fuw.upgrade('C:\\Program Files (x86)\\Rockwell Software\\RSView Enterprise\\FUWhelper6xX.dll','C:\\ExampleFirmwareUpdateCard\\upgrade\\SC.IMG')

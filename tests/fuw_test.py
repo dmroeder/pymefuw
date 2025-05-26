@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from pymefuw import MEFUW
+from pymefuw import MEFirmware
 
 # Turn off sort so that tests run in line order
 unittest.TestLoader.sortTestMethodsUsing = None
@@ -25,7 +25,7 @@ class fuw_tests(unittest.TestCase):
         self.fuw_image_path = os.path.join(FIRMWARE_FOLDER_PATH, 'FUC', 'PVP6', 'ME_PVP6xX_11.00-20190915', 'upgrade', 'SC.IMG')
         print(self.fuw_helper_path)
         print(self.fuw_image_path)
-        fuw = MEFUW(self.ip_address)
+        fuw = MEFirmware(self.ip_address)
         fuw.upgrade(self.fuw_helper_path, self.fuw_image_path)
 
     def test_pvp6_v12(self):
@@ -34,7 +34,7 @@ class fuw_tests(unittest.TestCase):
         self.fuw_image_path = os.path.join(FIRMWARE_FOLDER_PATH, 'FUC', 'PVP6', 'ME_PVP6xX_12.00-20200922', 'upgrade', 'SC.IMG')
         print(self.fuw_helper_path)
         print(self.fuw_image_path)
-        fuw = MEFUW(self.ip_address)
+        fuw = MEFirmware(self.ip_address)
         fuw.upgrade(self.fuw_helper_path, self.fuw_image_path)
 
     def tearDown(self):
