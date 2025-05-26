@@ -39,6 +39,11 @@ class MEFirmware(object):
 
     def upgrade(self, fuw_helper_path: str, fuw_image_path: str):
         with comms.Driver(self.comms_path, self.driver) as cip:
+            # Increase socket timeout before process begins.
+            # Doing this just before the firmware upgrade card transfer
+            # seems to not work correctly.
+            cip.timeout = 240
+
             # Validate device at this communications path is a terminal of known version.
             self.device = terminal.validation.get_terminal_info(cip)
             if not(terminal.validation.is_terminal_valid(self.device)):
@@ -83,7 +88,6 @@ class MEFirmware(object):
 
             # Download firmware upgrade card to terminal
             try:
-                cip.timeout = 480
                 fuw_image_file = types.MEFile('SC.IMG',
                                             True,
                                             True,
@@ -96,3 +100,5 @@ class MEFirmware(object):
                 self.device.log.append(f'Exception: {str(e)}')
                 self.device.log.append(f'Failed to upgrade terminal.')
                 return types.MEResponse(self.device, types.MEResponseStatus.FAILURE)
+            
+        return types.MEResponse(self.device, types.MEResponseStatus.SUCCESS)
