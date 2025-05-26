@@ -9,7 +9,7 @@ authors = [
 ]
 dependencies = [
     "pylogix",
-    "pymeu"
+    "pymeu >= 0.2.1"
 ]
 
 [project.urls]
