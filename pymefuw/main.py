@@ -1,4 +1,5 @@
 from enum import StrEnum
+import time
 from warnings import warn
 
 from pymeu import comms
@@ -39,11 +40,6 @@ class MEFirmware(object):
 
     def upgrade(self, fuw_helper_path: str, fuw_image_path: str):
         with comms.Driver(self.comms_path, self.driver) as cip:
-            # Increase socket timeout before process begins.
-            # Doing this just before the firmware upgrade card transfer
-            # seems to not work correctly.
-            cip.timeout = 240
-
             # Validate device at this communications path is a terminal of known version.
             self.device = terminal.validation.get_terminal_info(cip)
             if not(terminal.validation.is_terminal_valid(self.device)):
@@ -68,6 +64,7 @@ class MEFirmware(object):
                 return types.MEResponse(self.device, types.MEResponseStatus.FAILURE)
 
             # Prepare terminal for firmware upgrade card
+            time.sleep(10)
             try:
                 fuw_helper = '\\Storage Card\\FUWhelper.dll'
                 terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.GET_FILE_EXISTS, '\\Windows\\FUWhelper.dll'])
@@ -88,6 +85,7 @@ class MEFirmware(object):
 
             # Download firmware upgrade card to terminal
             try:
+                cip.timeout = 255
                 fuw_image_file = types.MEFile('SC.IMG',
                                             True,
                                             True,

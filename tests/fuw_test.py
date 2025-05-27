@@ -15,8 +15,9 @@ FIRMWARE_FOLDER_PATH = os.path.join(BASE_PATH, 'firmware')
 
 class fuw_tests(unittest.TestCase):
     def setUp(self):
+        self.ip_address = '192.168.40.123'
         #self.ip_address = '192.168.40.104,4,192.168.1.20'
-        self.ip_address = '192.168.1.20'
+        #self.ip_address = '192.168.1.20'
         pass
 
     def test_pvp6_v11(self):
