@@ -1,19 +1,10 @@
-from enum import StrEnum
 import time
 from warnings import warn
 
 from pymeu import comms
-from pymeu import types
 from pymeu import terminal
-
-# Known functions available from FuwHelper.
-class FuwHelperFunctions(StrEnum):
-    CREATE_FOLDER = 'CreateRemDirectory' # Args: {Folder Path}, Returns: Static value if successful [Further investigation needed]
-    DELETE_FILE = 'DeleteRemFile' # Args: {File Path}, Returns: ???
-    GET_EXE_RUNNING = 'IsExeRunning' # Untested
-    GET_FILE_EXISTS = 'FileExists' # Args: {File Path}, Returns: 1 if {File Path} exists
-    GET_FOLDER_EXISTS = 'StorageExists' # Args: {Folder Path}, Returns: 1 if {Folder Path} exists
-    STOP_PROCESS_ME = 'SafeTerminateME'
+from pymeu import types
+from pymefuw.terminal import fuwhelper
 
 class MEFirmware(object):
     def __init__(self, comms_path: str, **kwargs):
@@ -53,36 +44,50 @@ class MEFirmware(object):
                 else:
                     raise Exception('Invalid device selected.  Use kwarg ignore_terminal_valid=True when initializing MEUtility object to proceed at your own risk.')
 
+            # Determine if firmware upgrade helepr exists already
+            if terminal.helper.get_file_exists(cip, self.device.paths, '\\Windows\\FUWhelper.dll'):
+                transfer_fuwhelper = False
+                self.device.paths.fuw_helper_file = '\\Windows\\FUWhelper.dll'
+                self.device.log.append(f'Firmware upgrade helper already present on terminal.')
+            else:
+                transfer_fuwhelper = True
+                self.device.paths.fuw_helper_file = '\\Storage Card\\FUWhelper.dll'
+                self.device.log.append(f'Firmware upgrade helper not present on terminal, will transfer.')
+  
             # Download firmware upgrade wizard helper to terminal
-            try:
-                fuw_helper_file = types.MEFile('FUWhelper.dll',
-                                            True,
-                                            True,
-                                            fuw_helper_path)
-                resp = terminal.actions.download_file(cip, self.device, fuw_helper_file, '\\Storage Card')
-                if not(resp):
+            if transfer_fuwhelper:
+                try:
+                    fuw_helper_file = types.MEFile('FUWhelper.dll',
+                                                True,
+                                                True,
+                                                fuw_helper_path)
+                    resp = terminal.actions.download_file(cip, self.device, fuw_helper_file, '\\Storage Card')
+                    if not(resp):
+                        self.device.log.append(f'Failed to upgrade terminal.')
+                        return types.MEResponse(self.device, types.MEResponseStatus.FAILURE)
+                    
+                    time.sleep(10)
+                except Exception as e:
+                    self.device.log.append(f'Exception: {str(e)}')
                     self.device.log.append(f'Failed to upgrade terminal.')
                     return types.MEResponse(self.device, types.MEResponseStatus.FAILURE)
-            except Exception as e:
-                self.device.log.append(f'Exception: {str(e)}')
-                self.device.log.append(f'Failed to upgrade terminal.')
-                return types.MEResponse(self.device, types.MEResponseStatus.FAILURE)
 
             # Prepare terminal for firmware upgrade card
-            time.sleep(10)
             try:
-                fuw_helper = '\\Storage Card\\FUWhelper.dll'
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.GET_FILE_EXISTS, '\\Windows\\FUWhelper.dll'])
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.GET_FOLDER_EXISTS, '\\Storage Card\\vfs\\platform firmware'])
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.GET_FOLDER_EXISTS, '\\Storage Card'])
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.GET_FOLDER_EXISTS, '\\Storage Card\\vfs'])
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.CREATE_FOLDER, '\\Storage Card\\vfs'])
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.GET_FOLDER_EXISTS, '\\Storage Card\\vfs\\platform firmware'])
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.CREATE_FOLDER, '\\Storage Card\\vfs\\platform firmware'])
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.DELETE_FILE, '\\Storage Card\\Step2.dat'])
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.GET_EXE_RUNNING, 'MERuntime.exe'])
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.STOP_PROCESS_ME, ''])
-                terminal.helper.run_function(cip, [fuw_helper, FuwHelperFunctions.GET_FILE_EXISTS, '\\Windows\\useroptions.txt'])
+                fuwhelper.get_file_exists(cip, self.device.paths, '\\Windows\\FUWhelper.dll')
+
+                if not(fuwhelper.get_folder_exists(cip, self.device.paths, '\\Storage Card')):
+                    fuwhelper.create_folder(cip, self.device.paths, '\\Storage Card')
+                if not(fuwhelper.get_folder_exists(cip, self.device.paths, '\\Storage Card\\vfs')):
+                    fuwhelper.create_folder(cip, self.device.paths, '\\Storage Card\\vfs')
+                if not(fuwhelper.get_folder_exists(cip, self.device.paths, '\\Storage Card\\vfs\\platform firmware')):
+                    fuwhelper.create_folder(cip, self.device.paths, '\\Storage Card\\vfs\\platform firmware')
+
+                fuwhelper.delete_file(cip, self.device.paths, '\\Storage Card\\Step2.dat')
+                if fuwhelper.get_exe_running(cip, self.device.paths, 'MERuntime.exe'):
+                    fuwhelper.stop_process_me(cip, self.device.paths)
+
+                fuwhelper.get_file_exists(cip, self.device.paths, '\\Windows\\useroptions.txt')
             except Exception as e:
                 self.device.log.append(f'Exception: {str(e)}')
                 self.device.log.append(f'Failed to upgrade terminal.')
